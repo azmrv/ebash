@@ -13,14 +13,14 @@ NC='\033[0m' # No Color
 # Функции для вывода
 info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
-error() { echo -e "${RED}[ERROR]${NC} $1"; }
+error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 step() { echo -e "${BLUE}[STEP]${NC} $1"; }
 
 # Проверка, что скрипт НЕ запущен от root
 check_user() {
     if [ "$EUID" -eq 0 ]; then
         error "НЕ запускайте этот скрипт через 'sudo $0'!"
-        error "Запустите его как обычный пользователь: ./setup_dev_env.sh"
+        error "Запустите его как обычный пользователь: ./setup.sh"
         error "Скрипт сам запросит sudo там, где это необходимо."
         exit 1
     fi
@@ -35,7 +35,6 @@ check_sudo() {
 }
 
 # Определение домашней директории реального пользователя
-# (даже если сработает sudo, пути не сломаются)
 REAL_USER_HOME=$(eval echo "~${SUDO_USER:-$USER}")
 SETUP_DIR="$REAL_USER_HOME/setup"
 CONFIGS_DIR="$SETUP_DIR/configs"
