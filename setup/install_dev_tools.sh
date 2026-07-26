@@ -9,6 +9,9 @@ source "$(dirname "$0")/scripts/common.sh"
 step "УСТАНОВКА ИНСТРУМЕНТОВ РАЗРАБОТКИ"
 check_user "$USER"
 
+# === Фикс: переходим в домашнюю директорию, чтобы избежать ошибок getcwd ===
+cd "$HOME" || error "Не удалось перейти в $HOME"
+
 # ---- Go ----
 step "Установка Golang"
 GO_VERSION=$(curl -s "https://go.dev/VERSION?m=text" | head -n 1)
@@ -34,7 +37,7 @@ info "Node.js установлен: $(node --version)"
 
 # ---- VS Code ----
 step "Установка VS Code (Snap)"
-sudo snap install --classic code
+sudo snap install --classic code || info "VS Code уже установлен"
 
 # ---- Google Chrome ----
 step "Установка Google Chrome"
@@ -46,6 +49,8 @@ sudo apt install -y google-chrome-stable
 
 # ---- Git настройка ----
 step "Настройка Git"
+# Убеждаемся, что мы в домашней директории
+cd "$HOME"
 read -p "Введите ваше Имя и Фамилию для Git: " GIT_NAME
 read -p "Введите ваш Email для Git: " GIT_EMAIL
 if [ -n "$GIT_NAME" ] && [ -n "$GIT_EMAIL" ]; then
@@ -70,7 +75,10 @@ fi
 # ---- Rust ----
 step "Установка Rust (через rustup)"
 if ! command -v rustc &> /dev/null; then
+    # Временно переходим в /tmp, чтобы избежать проблем с pwd
+    cd /tmp
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    cd "$HOME"
     source "$HOME/.cargo/env"
     echo 'source "$HOME/.cargo/env"' >> ~/.bashrc
     rustup component add rust-analyzer clippy rustfmt
