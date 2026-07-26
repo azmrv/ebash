@@ -17,9 +17,10 @@ show_menu() {
     echo "6. Развёртывание Forgejo (Docker Compose)"
     echo "7. Создать структуру служебных папок"
     echo "8. Настройка безопасности SSH (UFW, Fail2ban, смена порта)"
+    echo "9. Настройка SSH Certificate Authority (CA) — доступ по сертификатам"
     echo "0. Выход"
     echo
-    read -p "Выберите вариант [0-8]: " choice
+    read -p "Выберите вариант [0-9]: " choice
 }
 
 create_structure
@@ -85,12 +86,16 @@ while true; do
             info "Настройка безопасности SSH..."
             "$SCRIPT_DIR/setup_security.sh"
             ;;
+        9)
+            info "Настройка SSH Certificate Authority (CA)..."
+            "$SCRIPT_DIR/setup_ssh_ca.sh"
+            ;;
         0)
             info "Выход. Удачной разработки!"
             exit 0
             ;;
         *)
-            error "Неверный выбор. Выберите 0-8."
+            error "Неверный выбор. Выберите 0-9."
             ;;
     esac
     echo

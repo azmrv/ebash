@@ -107,7 +107,7 @@ fi
 # ----------------------------------------------------------------------
 step "6. Настройка таймаута неактивности"
 sudo tee /etc/profile.d/timeout.sh > /dev/null << 'EOF'
-TMOUT=600
+TMOUT=900
 readonly TMOUT
 export TMOUT
 EOF
@@ -163,7 +163,7 @@ sudo tee /etc/fail2ban/jail.local > /dev/null <<EOF
 [DEFAULT]
 bantime = 3600
 findtime = 600
-maxretry = 3
+maxretry = 10
 
 [sshd]
 enabled = true
