@@ -8,19 +8,30 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/scripts/common.sh"
 
 show_menu() {
-    echo -e "${GREEN}=== ИНТЕРАКТИВНОЕ МЕНЮ УСТАНОВКИ ОКРУЖЕНИЯ ===${NC}"
-    echo "1. Установка системного ПО + безопасность (требует sudo)"
-    echo "2. Установка инструментов разработки (Go, Node.js, Rust, VS Code, Chrome, Git, SSH)"
-    echo "3. Восстановление пользовательских конфигураций"
-    echo "4. ПОЛНАЯ УСТАНОВКА (выбор этапа 1 или 2)"
-    echo "5. Установка дополнительных утилит (far2l, bat, exa, fzf, ripgrep, fd-find, tmux, jq, httpie, tldr, Git LFS)"
-    echo "6. Развёртывание Forgejo (Docker Compose)"
-    echo "7. Создать структуру служебных папок"
-    echo "8. Настройка безопасности SSH (UFW, Fail2ban, смена порта)"
-    echo "9. Настройка SSH Certificate Authority (CA) — доступ по сертификатам"
-    echo "0. Выход"
-    echo
-    read -p "Выберите вариант [0-9]: " choice
+    echo -e "${GREEN}=== ГЛАВНОЕ МЕНЮ АВТОМАТИЗАЦИИ СЕРВЕРА РАЗРАБОТКИ ===${NC}"
+    echo ""
+    echo "--- Система и безопасность ---"
+    echo " 1. Установка системного ПО + безопасность (требует sudo)"
+    echo " 2. Настройка безопасности SSH (UFW, Fail2ban, смена порта)"
+    echo " 3. Настройка SSH Certificate Authority (CA) — доступ по сертификатам"
+    echo ""
+    echo "--- Инструменты разработки ---"
+    echo " 4. Установка инструментов разработки (Go, Node.js, Rust, VS Code, Chrome, Git, SSH)"
+    echo " 5. Установка дополнительных утилит (far2l, bat, exa, fzf, ripgrep, tmux, jq, httpie, tldr, Git LFS)"
+    echo ""
+    echo "--- Git-сервер и CI/CD ---"
+    echo " 6. Развёртывание Forgejo (Git-сервер через Docker Compose)"
+    echo " 7. Установка Forgejo Runner (CI/CD для автоматической сборки)"
+    echo ""
+    echo "--- Конфигурации и бэкапы ---"
+    echo " 8. Восстановление пользовательских конфигураций (из папки configs)"
+    echo " 9. Создание бэкапа текущих конфигураций (в папку configs)"
+    echo ""
+    echo "--- Утилиты ---"
+    echo "10. Создать структуру служебных папок"
+    echo " 0. Выход"
+    echo ""
+    read -p "Выберите вариант [0-10]: " choice
 }
 
 create_structure
@@ -34,42 +45,16 @@ while true; do
             sudo "$SCRIPT_DIR/install_system.sh"
             ;;
         2)
-            info "Запуск установки инструментов разработки..."
-            "$SCRIPT_DIR/install_dev_tools.sh"
+            info "Настройка безопасности SSH..."
+            "$SCRIPT_DIR/setup_security.sh"
             ;;
         3)
-            info "Восстановление конфигураций..."
-            "$SCRIPT_DIR/restore_configs.sh"
+            info "Настройка SSH Certificate Authority (CA)..."
+            "$SCRIPT_DIR/setup_ssh_ca.sh"
             ;;
         4)
-            warn "Полная установка разбита на два этапа:"
-            echo "  Этап 1: системное ПО + безопасность (Docker, UFW, автообновления) — требует перезагрузки"
-            echo "  Этап 2: инструменты разработки (Go, Rust, Node.js, VS Code, Chrome, Git, SSH),"
-            echo "          дополнительные утилиты (far2l, bat, exa, fzf, ripgrep, tmux, jq, httpie, tldr, Git LFS),"
-            echo "          развёртывание Forgejo, восстановление конфигов."
-            echo ""
-            read -p "Выберите этап [1 или 2]: " stage
-            echo
-            case $stage in
-                1)
-                    info "Запуск Этапа 1 (системное ПО + безопасность)..."
-                    sudo "$SCRIPT_DIR/install_system.sh"
-                    warn "✅ Системный этап завершён!"
-                    warn "ОБЯЗАТЕЛЬНО ПЕРЕЗАГРУЗИТЕСЬ: sudo reboot"
-                    warn "После перезагрузки снова запустите setup.sh и выберите пункт 4, затем этап 2."
-                    ;;
-                2)
-                    info "Запуск Этапа 2 (инструменты, утилиты, Forgejo, конфиги)..."
-                    "$SCRIPT_DIR/install_dev_tools.sh"
-                    "$SCRIPT_DIR/install_software.sh"
-                    "$SCRIPT_DIR/deploy_forgejo.sh"
-                    "$SCRIPT_DIR/restore_configs.sh"
-                    info "✅ Все компоненты этапа 2 установлены и настроены!"
-                    ;;
-                *)
-                    error "Неверный выбор. Введите 1 или 2."
-                    ;;
-            esac
+            info "Установка инструментов разработки..."
+            "$SCRIPT_DIR/install_dev_tools.sh"
             ;;
         5)
             info "Установка дополнительных утилит..."
@@ -80,22 +65,26 @@ while true; do
             "$SCRIPT_DIR/deploy_forgejo.sh"
             ;;
         7)
-            create_structure
+            info "Установка Forgejo Runner..."
+            "$SCRIPT_DIR/setup_forgejo_runner.sh"
             ;;
         8)
-            info "Настройка безопасности SSH..."
-            "$SCRIPT_DIR/setup_security.sh"
+            info "Восстановление конфигураций..."
+            "$SCRIPT_DIR/restore_configs.sh"
             ;;
         9)
-            info "Настройка SSH Certificate Authority (CA)..."
-            "$SCRIPT_DIR/setup_ssh_ca.sh"
+            info "Создание бэкапа конфигураций..."
+            "$SCRIPT_DIR/backup_configs.sh"
+            ;;
+        10)
+            create_structure
             ;;
         0)
             info "Выход. Удачной разработки!"
             exit 0
             ;;
         *)
-            error "Неверный выбор. Выберите 0-9."
+            error "Неверный выбор. Пожалуйста, выберите цифру от 0 до 10."
             ;;
     esac
     echo
