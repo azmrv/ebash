@@ -41,16 +41,30 @@ while true; do
             "$SCRIPT_DIR/restore_configs.sh"
             ;;
         4)
-            warn "Полная установка в два этапа:"
-            echo "Этап 1: системное ПО + безопасность (требуется перезагрузка)"
-            echo "Этап 2: инструменты разработки + утилиты + Forgejo"
-            read -p "Запустить Этап 1? (y/n): " -n 1 -r
-            echo
-            if [[ $REPLY =~ ^[Yy]$ ]]; then
-                sudo "$SCRIPT_DIR/install_system.sh"
-                warn "Системный этап завершён. Перезагрузитесь: sudo reboot"
-                warn "После перезагрузки запустите setup.sh и выполните пункты 2, 5, 6, 3."
-                exit 0
+            STAGE1_FLAG="/var/run/setup_stage1_done"
+            if [ ! -f "$STAGE1_FLAG" ]; then
+                warn "Это первый запуск полной установки. Будет выполнен Этап 1 (система)."
+                echo "После завершения потребуется перезагрузка, затем скрипт продолжится автоматически."
+                read -p "Запустить Этап 1? (y/n): " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    sudo "$SCRIPT_DIR/install_system.sh"
+                    sudo touch "$STAGE1_FLAG"
+                    warn "🛑 СИСТЕМНЫЙ ЭТАП ЗАВЕРШЁН!"
+                    warn "ОБЯЗАТЕЛЬНО ПЕРЕЗАГРУЗИТЕСЬ: sudo reboot"
+                    warn "После перезагрузки снова запустите ./setup.sh и выберите пункт 4 — продолжится Этап 2."
+                    exit 0
+                fi
+            else
+                info "✅ Этап 1 уже выполнен. Запускаем Этап 2 (инструменты, утилиты, Forgejo)."
+                # Выполняем пункты 2, 5, 6, 3 последовательно
+                "$SCRIPT_DIR/install_dev_tools.sh"
+                "$SCRIPT_DIR/install_software.sh"
+                "$SCRIPT_DIR/deploy_forgejo.sh"
+                "$SCRIPT_DIR/restore_configs.sh"
+                # Удаляем флаг, чтобы при следующем запуске снова была полная установка
+                sudo rm -f "$STAGE1_FLAG"
+                info "✅ Полная установка завершена!"
             fi
             ;;
         5)
