@@ -77,6 +77,8 @@ chmod 644 "$USER_CERT"
 info "✅ Сертификат успешно создан: $USER_CERT"
 info "Срок действия: $VALIDITY_DAYS дней."
 
+
+
 # ---- 4. Настройка клиента ----
 step "4. Настройка клиента для автоматического использования сертификата"
 CLIENT_CONFIG="$REAL_USER_HOME/.ssh/config"
