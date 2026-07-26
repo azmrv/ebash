@@ -12,14 +12,14 @@ show_menu() {
     echo "1. Установка системного ПО + безопасность (требует sudo)"
     echo "2. Установка инструментов разработки (Go, Node.js, Rust, VS Code, Chrome, Git, SSH)"
     echo "3. Восстановление пользовательских конфигураций"
-    echo "4. ПОЛНАЯ УСТАНОВКА (пошагово, с перезагрузкой)"
+    echo "4. ПОЛНАЯ УСТАНОВКА (выбор этапа 1 или 2)"
     echo "5. Установка дополнительных утилит (far2l, bat, exa, fzf, ripgrep, fd-find, tmux, jq, httpie, tldr, Git LFS)"
     echo "6. Развёртывание Forgejo (Docker Compose)"
     echo "7. Создать структуру служебных папок"
     echo "8. Настройка безопасности SSH (UFW, Fail2ban, смена порта)"
     echo "0. Выход"
     echo
-    read -p "Выберите вариант [0-7]: " choice
+    read -p "Выберите вариант [0-8]: " choice
 }
 
 create_structure
@@ -41,31 +41,34 @@ while true; do
             "$SCRIPT_DIR/restore_configs.sh"
             ;;
         4)
-            STAGE1_FLAG="/var/run/setup_stage1_done"
-            if [ ! -f "$STAGE1_FLAG" ]; then
-                warn "Это первый запуск полной установки. Будет выполнен Этап 1 (система)."
-                echo "После завершения потребуется перезагрузка, затем скрипт продолжится автоматически."
-                read -p "Запустить Этап 1? (y/n): " -n 1 -r
-                echo
-                if [[ $REPLY =~ ^[Yy]$ ]]; then
+            warn "Полная установка разбита на два этапа:"
+            echo "  Этап 1: системное ПО + безопасность (Docker, UFW, автообновления) — требует перезагрузки"
+            echo "  Этап 2: инструменты разработки (Go, Rust, Node.js, VS Code, Chrome, Git, SSH),"
+            echo "          дополнительные утилиты (far2l, bat, exa, fzf, ripgrep, tmux, jq, httpie, tldr, Git LFS),"
+            echo "          развёртывание Forgejo, восстановление конфигов."
+            echo ""
+            read -p "Выберите этап [1 или 2]: " stage
+            echo
+            case $stage in
+                1)
+                    info "Запуск Этапа 1 (системное ПО + безопасность)..."
                     sudo "$SCRIPT_DIR/install_system.sh"
-                    sudo touch "$STAGE1_FLAG"
-                    warn "🛑 СИСТЕМНЫЙ ЭТАП ЗАВЕРШЁН!"
+                    warn "✅ Системный этап завершён!"
                     warn "ОБЯЗАТЕЛЬНО ПЕРЕЗАГРУЗИТЕСЬ: sudo reboot"
-                    warn "После перезагрузки снова запустите ./setup.sh и выберите пункт 4 — продолжится Этап 2."
-                    exit 0
-                fi
-            else
-                info "✅ Этап 1 уже выполнен. Запускаем Этап 2 (инструменты, утилиты, Forgejo)."
-                # Выполняем пункты 2, 5, 6, 3 последовательно
-                "$SCRIPT_DIR/install_dev_tools.sh"
-                "$SCRIPT_DIR/install_software.sh"
-                "$SCRIPT_DIR/deploy_forgejo.sh"
-                "$SCRIPT_DIR/restore_configs.sh"
-                # Удаляем флаг, чтобы при следующем запуске снова была полная установка
-                sudo rm -f "$STAGE1_FLAG"
-                info "✅ Полная установка завершена!"
-            fi
+                    warn "После перезагрузки снова запустите setup.sh и выберите пункт 4, затем этап 2."
+                    ;;
+                2)
+                    info "Запуск Этапа 2 (инструменты, утилиты, Forgejo, конфиги)..."
+                    "$SCRIPT_DIR/install_dev_tools.sh"
+                    "$SCRIPT_DIR/install_software.sh"
+                    "$SCRIPT_DIR/deploy_forgejo.sh"
+                    "$SCRIPT_DIR/restore_configs.sh"
+                    info "✅ Все компоненты этапа 2 установлены и настроены!"
+                    ;;
+                *)
+                    error "Неверный выбор. Введите 1 или 2."
+                    ;;
+            esac
             ;;
         5)
             info "Установка дополнительных утилит..."
@@ -79,15 +82,15 @@ while true; do
             create_structure
             ;;
         8)
-        info "Запуск настройки безопасности SSH..."
-        "$SCRIPT_DIR/setup_security.sh"
+            info "Настройка безопасности SSH..."
+            "$SCRIPT_DIR/setup_security.sh"
             ;;
         0)
             info "Выход. Удачной разработки!"
             exit 0
             ;;
         *)
-            error "Неверный выбор. Выберите 0-7."
+            error "Неверный выбор. Выберите 0-8."
             ;;
     esac
     echo
