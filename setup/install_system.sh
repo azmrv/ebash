@@ -13,7 +13,7 @@ step "1. Обновление системы"
 apt update && apt upgrade -y
 
 step "2. Установка базовых системных пакетов"
-APT_PACKAGES="build-essential git curl wget software-properties-common apt-transport-https ca-certificates python3 python3-dev python3-venv cmake htop tree net-tools zip unzip"
+APT_PACKAGES="build-essential git curl wget software-properties-common apt-transport-https ca-certificates python3 python3-dev python3-venv cmake htop tree net-tools zip unzip openssh-server"
 apt install -y $APT_PACKAGES
 
 step "3. Установка Docker"

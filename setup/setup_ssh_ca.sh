@@ -83,7 +83,8 @@ CLIENT_CONFIG="$REAL_USER_HOME/.ssh/config"
 mkdir -p "$(dirname "$CLIENT_CONFIG")"
 touch "$CLIENT_CONFIG"
 
-# ИСПРАВЛЕНО: Избегаем дублирования записей в ~/.ssh/config с помощью блочной проверки
+
+# Избегаем дублирования записей в ~/.ssh/config с помощью блочной проверки
 if ! grep -q "IdentityFile $USER_KEY" "$CLIENT_CONFIG"; then
     cat >> "$CLIENT_CONFIG" <<EOF
 
@@ -94,6 +95,17 @@ EOF
     info "✅ Клиентский файл конфигурации ~/.ssh/config успешно обновлён."
 else
     info "ℹ️ Клиентский конфиг уже содержит необходимые инструкции для сертификата."
+fi
+
+
+# Перезапускаем SSH (определяем имя службы)
+if systemctl list-units --full --all | grep -q "sshd.service"; then
+    sudo systemctl restart sshd
+elif systemctl list-units --full --all | grep -q "ssh.service"; then
+    sudo systemctl restart ssh
+else
+    warn "Служба SSH не найдена. Убедитесь, что openssh-server установлен."
+    warn "Установите: sudo apt install -y openssh-server"
 fi
 
 # ---- Итог ----
